@@ -1,0 +1,132 @@
+                           START
+                              │
+                              ▼
+                    Collect Dataset
+                              │
+                              ▼
+                    Exploratory Data Analysis
+                              │
+                              ▼
+                    Data Cleaning
+                              │
+                              ▼
+                 Feature Engineering
+                              │
+                              ▼
+                Train / Validation Split
+                              │
+                              ▼
+                 Build ML Pipeline
+                              │
+             ┌────────────────┴─────────────────┐
+             ▼                                  ▼
+      Data Preprocessing                 Model Training
+             │                                  │
+             └────────────────┬─────────────────┘
+                              ▼
+                     Hyperparameter Tuning
+                              │
+                              ▼
+                    Evaluate the Model
+                              │
+                              ▼
+                 Save Model (.pkl/.joblib)
+                              │
+                              ▼
+                    Build FastAPI API
+                              │
+                              ▼
+                  Dockerize the Project
+                              │
+                              ▼
+                  GitHub Repository
+                              │
+                              ▼
+                 GitHub Actions (CI/CD)
+                              │
+                              ▼
+                  Local Deployment (Docker)
+                              │
+                              ▼
+                             END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+loan_Project/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── artifacts/
+│   ├── model.pkl
+│   ├── preprocessor.pkl
+│   └── metrics.json
+│
+├── config/
+│   └── config.yaml
+│
+├── data/
+│   ├── raw/
+│   │     └── dataset.csv
+│   │
+│   ├── interim/
+│   │
+│   └── processed/
+│
+├── notebooks/
+│   ├── 01_eda.ipynb
+│   ├── 02_feature_engineering.ipynb
+│   └── 03_model_experiments.ipynb
+│
+├── src/
+│   │
+│   ├── components/
+│   │     ├── data_ingestion.py
+│   │     ├── data_validation.py
+│   │     ├── data_transformation.py
+│   │     ├── model_trainer.py
+│   │     ├── model_evaluation.py
+│   │     └── model_pusher.py
+│   │
+│   ├── pipeline/
+│   │     ├── training_pipeline.py
+│   │     └── prediction_pipeline.py
+│   │
+│   ├── utils.py
+│   ├── logger.py
+│   ├── exception.py
+│   └── config.py
+│
+├── app/
+│   ├── main.py
+│   ├── schemas.py
+│   └── predict.py
+│
+├── tests/
+│   ├── test_preprocessing.py
+│   ├── test_training.py
+│   └── test_api.py
+│
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── README.md
+├── setup.py
+├── pyproject.toml
+├── .gitignore
+└── LICENSE

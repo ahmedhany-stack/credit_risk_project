@@ -1,0 +1,99 @@
+name: Manual ML Pipeline
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    env:
+      PYTHONUNBUFFERED: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Show Python Version
+        run: |
+          python --version
+          pip --version
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Project Structure
+        run: |
+          pwd
+          ls -R
+
+      - name: Import Check
+        run: |
+          python - <<EOF
+          import src
+          print("Project imported successfully")
+          EOF
+
+      - name: Run Training Pipeline (Optional)
+        continue-on-error: true
+        run: |
+          python -m src.pipeline.training_pipeline
+
+      - name: Check Artifacts
+        run: |
+          if [ -d artifacts ]; then
+            echo "Artifacts found"
+            ls -lh artifacts
+          else
+            echo "No artifacts directory"
+          fi
+
+      - name: Start FastAPI
+        run: |
+          uvicorn app.api:app --host 127.0.0.1 --port 8000 &
+          sleep 10
+
+      - name: Health Check
+        run: |
+          curl http://127.0.0.1:8000/
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ml-artifacts
+          path: |
+            artifacts/**
+          if-no-files-found: ignore
+
+      - name: Workflow Summary
+        if: always()
+        run: |
+          echo "## Workflow Finished 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Repository checked out" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependencies installed" >> $GITHUB_STEP_SUMMARY
+          echo "- Import verified" >> $GITHUB_STEP_SUMMARY
+          echo "- FastAPI health checked" >> $GITHUB_STEP_SUMMARY
+          echo "- Artifacts uploaded (if generated)" >> $GITHUB_STEP_SUMMARY

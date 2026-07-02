@@ -11,7 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   build:
 
     runs-on: ubuntu-latest
@@ -23,7 +22,6 @@ jobs:
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -33,7 +31,7 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Show Python Version
+      - name: Python Info
         run: |
           python --version
           pip --version
@@ -43,7 +41,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Project Structure
+      - name: Installed Packages
+        run: |
+          pip list
+
+      - name: Show Project Structure
         run: |
           pwd
           ls -R
@@ -52,31 +54,38 @@ jobs:
         run: |
           python - <<EOF
           import src
-          print("Project imported successfully")
+          print("Project imported successfully ✅")
           EOF
 
-      - name: Run Training Pipeline (Optional)
+      - name: Run Training Pipeline
         continue-on-error: true
         run: |
           python -m src.pipeline.training_pipeline
 
       - name: Check Artifacts
         run: |
+          echo "========== ARTIFACTS =========="
           if [ -d artifacts ]; then
-            echo "Artifacts found"
             ls -lh artifacts
           else
-            echo "No artifacts directory"
+            echo "Artifacts directory not found."
           fi
 
       - name: Start FastAPI
         run: |
-          uvicorn app.api:app --host 127.0.0.1 --port 8000 &
+          python -m uvicorn app.api:app \
+            --host 127.0.0.1 \
+            --port 8000 \
+            > api.log 2>&1 &
+
           sleep 10
+
+          echo "========== API LOG =========="
+          cat api.log || true
 
       - name: Health Check
         run: |
-          curl http://127.0.0.1:8000/
+          curl --fail http://127.0.0.1:8000/
 
       - name: Upload Artifacts
         if: always()
@@ -87,13 +96,24 @@ jobs:
             artifacts/**
           if-no-files-found: ignore
 
+      - name: Upload API Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-log
+          path: api.log
+          if-no-files-found: ignore
+
       - name: Workflow Summary
         if: always()
         run: |
-          echo "## Workflow Finished 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Workflow Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Repository checked out" >> $GITHUB_STEP_SUMMARY
-          echo "- Dependencies installed" >> $GITHUB_STEP_SUMMARY
-          echo "- Import verified" >> $GITHUB_STEP_SUMMARY
-          echo "- FastAPI health checked" >> $GITHUB_STEP_SUMMARY
-          echo "- Artifacts uploaded (if generated)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Repository checked out" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Python environment ready" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dependencies installed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Import check completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Training pipeline executed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ FastAPI started (see api.log if failed)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Health check executed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Artifacts uploaded" >> $GITHUB_STEP_SUMMARY

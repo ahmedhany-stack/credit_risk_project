@@ -1,4 +1,7 @@
+import sys
+
 from src.components.logger import logger
+from src.exception import CustomException
 
 from src.components.model_trainer import ModelTrainer
 from src.components.model_evaluation import ModelEvaluation
@@ -10,9 +13,7 @@ class TrainingPipeline:
     def __init__(self):
 
         self.trainer = ModelTrainer()
-
         self.evaluator = ModelEvaluation()
-
         self.pusher = ModelPusher()
 
     def run_pipeline(self):
@@ -29,7 +30,7 @@ class TrainingPipeline:
 
             model, X_test, y_test = self.trainer.train()
 
-            logger.info("Model Training Completed")
+            logger.info("Model training completed.")
 
             # =======================
             # Evaluate Model
@@ -41,15 +42,15 @@ class TrainingPipeline:
                 y_test=y_test
             )
 
-            logger.info("Model Evaluation Completed")
+            logger.info("Model evaluation completed.")
 
             # =======================
-            # Push Model
+            # Save Model
             # =======================
 
             self.pusher.push(model)
 
-            logger.info("Model Pushed Successfully")
+            logger.info("Model saved successfully.")
 
             logger.info("=" * 80)
             logger.info("Training Pipeline Finished Successfully")
@@ -59,5 +60,14 @@ class TrainingPipeline:
 
         except Exception as e:
 
-            logger.exception(e)
-            raise
+            logger.exception("Training pipeline failed.")
+            raise CustomException(e, sys)
+
+
+if __name__ == "__main__":
+
+    pipeline = TrainingPipeline()
+
+    metrics = pipeline.run_pipeline()
+
+    print(metrics)
